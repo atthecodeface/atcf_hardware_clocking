@@ -29,6 +29,7 @@
  */
 /*a Includes */
 include "std::tech_sync.h"
+include "std::bit_delay.h"
 include "clocking.h"
 
 /*a Constants

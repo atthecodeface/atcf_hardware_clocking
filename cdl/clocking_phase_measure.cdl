@@ -28,6 +28,7 @@
  *
  */
 /*a Includes */
+include "std::bit_delay.h"
 include "clocking.h"
 
 /*a Constants
