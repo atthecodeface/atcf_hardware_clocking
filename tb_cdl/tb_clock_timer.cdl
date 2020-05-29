@@ -20,30 +20,22 @@
 include "clock_timer.h"
 include "clock_timer_modules.h"
 
-/*a External modules */
-extern module se_test_harness( clock clk,
-                               output t_timer_control   master_timer_control,
-                               output t_timer_control   slave_timer_control,
-                               input  t_timer_value     master_timer_value,
-                               input  t_timer_value     slave_timer_value,
-                               input  t_timer_sec_nsec  master_timer_sec_nsec,
-                               input  t_timer_sec_nsec  slave_timer_sec_nsec
-    )
-{
-    timing from rising clock clk master_timer_control, slave_timer_control;
-    timing to   rising clock clk master_timer_value, slave_timer_value, master_timer_sec_nsec, slave_timer_sec_nsec;
-}
-
 /*a Module */
 module tb_clock_timer( clock clk,
                        clock slave_clk,
-                       input bit reset_n
+                       input bit reset_n,
+                       input   t_timer_control   master_timer_control,
+                       input   t_timer_control   slave_timer_control,
+                       output  t_timer_value     master_timer_value,
+                       output  t_timer_value     slave_timer_value,
+                       output  t_timer_sec_nsec  master_timer_sec_nsec,
+                       output  t_timer_sec_nsec  slave_timer_sec_nsec
 )
 {
 
     /*b Nets */
-    net t_timer_control   master_timer_control;
-    net t_timer_control   slave_timer_control;
+    // net t_timer_control   master_timer_control;
+    // net t_timer_control   slave_timer_control;
     net t_timer_control   slave_timer_control_out;
     net t_timer_value     master_timer_value;
     net t_timer_value     slave_timer_value;
@@ -52,14 +44,6 @@ module tb_clock_timer( clock clk,
 
     /*b Instantiations */
     instantiations: {
-        se_test_harness th( clk <- clk,
-                            master_timer_control => master_timer_control,
-                            slave_timer_control  => slave_timer_control,
-                            master_timer_value   <= master_timer_value,
-                            slave_timer_value    <= slave_timer_value,
-                            master_timer_sec_nsec <= master_timer_sec_nsec,
-                            slave_timer_sec_nsec  <= slave_timer_sec_nsec
-            );
         clock_timer ckt( clk <- clk, reset_n <= reset_n,
                          timer_control <= master_timer_control,
                          timer_value   => master_timer_value
