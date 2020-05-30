@@ -332,69 +332,17 @@ class clock_timer_test_hw(HardwareThDut):
 #c clock_timer
 class clock_timer(TestCase):
     hw = clock_timer_test_hw
-    def test_master_0(self):
-        self.run_test(hw_args={"th_exec_file_object_fn":c_clock_timer_test_master_0},
-                      run_time=12*1000,
-        )
-        pass
-    def test_master_sync_0(self):
-        self.run_test(hw_args={"th_exec_file_object_fn":c_clock_timer_test_master_sync_0},
-                      run_time=20*1000,
-        )
-        pass
-    def test_master_sync_1(self):
-        self.run_test(hw_args={"th_exec_file_object_fn":c_clock_timer_test_master_sync_1},
-                      run_time=20*1000,
-        )
-        pass
-    def test_master_sync_2(self):
-        self.run_test(hw_args={"th_exec_file_object_fn":c_clock_timer_test_master_sync_2},
-                      run_time=20*1000,
-        )
-        pass
-    def test_master_slave_0(self):
-        self.run_test(hw_args={"th_exec_file_object_fn":c_clock_timer_test_master_slave_0},
-                      run_time=200*1000,
-        )
-        pass
-    def test_master_slave_1(self):
-        self.run_test(hw_args={"th_exec_file_object_fn":c_clock_timer_test_master_slave_1},
-                      run_time=5*1000*1000,
-        )
-        pass
-    def test_master_slave_2(self):
-        self.run_test(hw_args={"th_exec_file_object_fn":c_clock_timer_test_master_slave_2},
-                      run_time=5*1000*1000,
-        )
-        pass
-    def test_master_slave_3(self):
-        self.run_test(hw_args={"th_exec_file_object_fn":c_clock_timer_test_master_slave_3},
-                      run_time=5*1000*1000,
-        )
-        pass
-    def test_master_slave_4(self):
-        self.run_test(hw_args={"th_exec_file_object_fn":c_clock_timer_test_master_slave_4},
-                      run_time=1*1000*1000,
-        )
-        pass
-    def test_master_slave_5(self):
-        self.run_test(hw_args={"th_exec_file_object_fn":c_clock_timer_test_master_slave_5,
-                               "slave_period":100},
-                      run_time=5*1000*1000,
-        )
-        pass
-    def test_master_slave_6(self):
-        self.run_test(hw_args={"th_exec_file_object_fn":c_clock_timer_test_master_slave_6,
-                               "slave_period":1000},
-                      run_time=25*1000*1000,
-        )
-        pass
-    def test_master_slave_7(self):
-        self.run_test(hw_args={"th_exec_file_object_fn":c_clock_timer_test_master_slave_7,
-                               "slave_period":1000},
-                      run_time=25*1000*1000,
-        )
-        pass
+    _tests = {"master_0":       (c_clock_timer_test_master_0,        12*1000, {}),
+              "master_sync_0":  (c_clock_timer_test_master_sync_0,   20*1000, {}),
+              "master_sync_1":  (c_clock_timer_test_master_sync_1,   20*1000, {}),
+              "master_sync_2":  (c_clock_timer_test_master_sync_2,   20*1000, {}),
+              "master_slave_0": (c_clock_timer_test_master_slave_0,  200*1000, {}),
+              "master_slave_1": (c_clock_timer_test_master_slave_1,  5*1000*1000, {}),
+              "master_slave_2": (c_clock_timer_test_master_slave_2,  5*1000*1000, {}),
+              "master_slave_3": (c_clock_timer_test_master_slave_3,  5*1000*1000, {}),
+              "master_slave_4": (c_clock_timer_test_master_slave_4,  1*1000*1000, {}),
+              "master_slave_5": (c_clock_timer_test_master_slave_5,  5*1000*1000, {"slave_period":100}),
+              "master_slave_6": (c_clock_timer_test_master_slave_6, 25*1000*1000, {"slave_period":1000}),
+              "master_slave_7": (c_clock_timer_test_master_slave_7, 25*1000*1000, {"slave_period":1000}),
+    }
     pass
-
-test_suite = [clock_timer]

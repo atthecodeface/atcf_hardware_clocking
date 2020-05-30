@@ -52,7 +52,6 @@ class c_clocking_phase_measure_test_base(ThExecFile):
     def run(self) -> None:
         self.sim_msg = self.sim_message()
         self.bfm_wait(10)
-        # simple_tb.base_th.run_start(self)
         self.passtest("Test completed")
         pass
 
@@ -260,16 +259,14 @@ class clocking_test_hw(HardwareThDut):
 #c clocking_phase_measure
 class clocking_phase_measure(TestCase):
     hw = clocking_test_hw
-    def test_simple(self):
-        self.run_test(hw_args={"verbosity":0, "th_exec_file_object_fn":c_clocking_phase_measure_test_0}, run_time=10000)
-        pass
+    _tests = {"simple": (c_clocking_phase_measure_test_0, 10*1000, {"verbosity":0}),
+              }
     pass
 
 #c clocking_eye_tracking
 class clocking_eye_tracking(TestCase):
     hw = clocking_test_hw
-    def test_simple(self):
-        self.run_test(hw_args={"verbosity":0, "th_exec_file_object_fn":c_clocking_eye_tracking_test_0}, run_time=350*1000)
-        pass
+    _tests = {"simple": (c_clocking_eye_tracking_test_0, 350*1000, {"verbosity":0}),
+              }
     pass
 
