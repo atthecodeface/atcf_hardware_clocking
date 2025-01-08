@@ -81,7 +81,8 @@ permitted and should be blocked by any CSR-like write mechanism.
     bit     block_writes                        "If the timer has a seperate read/write interface, block writes";
 ```
 
-The design configuration of the clock timer provides the design clock period for the clock of the timer
+The struct `t_timer_period_config` contains the configuration of the
+clock period for a client of the timer.
 
 ```
 
@@ -103,26 +104,6 @@ should advance or retard its timer value by half a clock period.
     bit[64] synchronize_value                   "Value to synchronize to";
 ```
 
-async uses synchronize, reset, enable and `lock_to_master` on master control in
-
-async uses slave control in adder values only
-
-```
-    bit     reset_counter                       "Assert to reset the timer counter to 0; this takes precedence over enable_counter";
-    bit     enable_counter                      "Assert to enable the timer counter; otherwise it holds its value";
-    bit     advance                             "When enabled, a positive edge moves the clock on by half the amount more";
-    bit     retard                              "When enabled, a positive edge moves the clock on by half the amount less than normal";
-    bit     lock_to_master                      "Used by slaves to enable locking to a master when they are asynchronous";
-    t_timer_lock_window_lsb lock_window_lsb     "Used by slaves to control the synchronization loop bandwidth";
-    bit[2]  synchronize                         "Two bits to indicate whether to write top or bottom halves";
-    bit[64] synchronize_value                   "Value to synchronize to";
-    bit     block_writes                        "If the timer has a seperate read/write interface, block writes";
-    bit[8]  bonus_subfraction_add               "A fractional 1/16 is added to the timer every @a (add+1) / (@a add + @a sub + 2) cycles; if zero and @a sub is zero then no fractional add is performed";
-    bit[8]  bonus_subfraction_sub               "Used with @a add for fractional addition; (@sub + 1) is subtracted from the dda accumulator if that is +ve";
-    bit[4]  fractional_adder                    "f in fraction f/16 to add per cycle";
-    bit[8]  integer_adder                       "integer amount to add to timer counter per cycle";
-} t_timer_control;
-```
 
 ```
     bit[64] value   "64-bit timer value, reflecting the value in the timer counter";
@@ -197,11 +178,11 @@ Freq (MHz)   ppm    Req mp (ns)    Act mp (ns)  Tgt clks
    50        200      3125            1024        51
    50        100      6250            4096        204
    10        200      15625           4096        40
-   10        100      31250           4096        40
-    5        200      31250           1024        5*
-    5        100      62500           4096        20
-    1        200      156250          4096        4*
-    1        100      312500          4096        4*
+   10        100      31250          16384        160
+    5        200      31250          16384        80
+    5        100      62500          16384        80
+    1        200      156250         16384        16
+    1        100      312500         16384        16
 ```
 
 
