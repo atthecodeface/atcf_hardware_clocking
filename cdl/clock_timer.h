@@ -27,12 +27,35 @@
  * This is used by the clock_timer_async module
  *
  */
-typedef enum [2] {
-    timer_lock_window_lsb_4 = 2b00,
-    timer_lock_window_lsb_6 = 2b01,
-    timer_lock_window_lsb_8 = 2b10,
-    timer_lock_window_lsb_10 = 2b11
+typedef enum [3] {
+    timer_lock_window_lsb_4 = 3b000,
+    timer_lock_window_lsb_6 = 3b001,
+    timer_lock_window_lsb_8 = 3b010,
+    timer_lock_window_lsb_10 = 3b011,
+    timer_lock_window_lsb_12 = 3b100
 } t_timer_lock_window_lsb;
+
+/*t t_timer_period_config
+ *
+ * Configuration of a clock period for a timer
+ *
+ */
+typedef struct {
+    bit[8]  bonus_subfraction_add               "A fractional 1/16 is added to the timer every @a (add+1) / (@a add + @a sub + 2) cycles; if zero and @a sub is zero then no fractional add is performed";
+    bit[8]  bonus_subfraction_sub               "Used with @a add for fractional addition; (@sub + 1) is subtracted from the dda accumulator if that is +ve";
+    bit[4]  fractional_adder                    "f in fraction f/16 to add per cycle";
+    bit[8]  integer_adder                       "integer amount to add to timer counter per cycle";
+} t_timer_period_config;
+
+/*t t_timer_period_config
+ *
+ * Configuration of a clock period for a timer
+ *
+ */
+typedef struct {
+    bit     lock_to_master                      "Used by slaves to enable locking to a master when they are asynchronous";
+    t_timer_lock_window_lsb lock_window_lsb     "Used by slaves to control the synchronization loop bandwidth";
+} t_timer_lock_control;
 
 /*t t_timer_control
  *
@@ -47,15 +70,13 @@ typedef struct {
     bit     enable_counter                      "Assert to enable the timer counter; otherwise it holds its value";
     bit     advance                             "When enabled, a positive edge moves the clock on by half the amount more";
     bit     retard                              "When enabled, a positive edge moves the clock on by half the amount less than normal";
-    bit     lock_to_master                      "Used by slaves to enable locking to a master when they are asynchronous";
-    t_timer_lock_window_lsb lock_window_lsb     "Used by slaves to control the synchronization loop bandwidth";
+    bit     block_writes                        "If the timer has a seperate read/write interface, block writes";
+
     bit[2]  synchronize                         "Two bits to indicate whether to write top or bottom halves";
     bit[64] synchronize_value                   "Value to synchronize to";
-    bit     block_writes                        "If the timer has a seperate read/write interface, block writes";
-    bit[8]  bonus_subfraction_add               "A fractional 1/16 is added to the timer every @a (add+1) / (@a add + @a sub + 2) cycles; if zero and @a sub is zero then no fractional add is performed";
-    bit[8]  bonus_subfraction_sub               "Used with @a add for fractional addition; (@sub + 1) is subtracted from the dda accumulator if that is +ve";
-    bit[4]  fractional_adder                    "f in fraction f/16 to add per cycle";
-    bit[8]  integer_adder                       "integer amount to add to timer counter per cycle";
+
+    t_timer_period_config period "Period of the clock the timer runs in";
+    t_timer_lock_control lock_control "Control of locking for an async clock";
 } t_timer_control;
 
 /*t t_timer_value

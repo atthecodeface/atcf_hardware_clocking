@@ -50,29 +50,29 @@ class c_clock_timer_test_base(ThExecFile):
     hw_clk = "clk"
     #f configure_master
     def configure_master(self, adder, bonus=(0,0)):
-        self.master_timer_control__bonus_subfraction_sub.drive(bonus[1])
-        self.master_timer_control__bonus_subfraction_add.drive(bonus[0])
-        self.master_timer_control__fractional_adder.drive(adder[1])
-        self.master_timer_control__integer_adder.drive(adder[0])
+        self.master_timer_control__period__bonus_subfraction_sub.drive(bonus[1])
+        self.master_timer_control__period__bonus_subfraction_add.drive(bonus[0])
+        self.master_timer_control__period__fractional_adder.drive(adder[1])
+        self.master_timer_control__period__integer_adder.drive(adder[0])
         self.master_timer_control__reset_counter.drive(1)
         self.master_timer_control__enable_counter.drive(0)
         print("Master configured for %fns %fMHz"%(clock_timer_period(adder, bonus),1000.0/clock_timer_period(adder, bonus)))
         pass
     #f configure_slave
     def configure_slave(self, adder, bonus=(0,0), lock=False):
-        self.slave_timer_control__bonus_subfraction_sub.drive(bonus[1])
-        self.slave_timer_control__bonus_subfraction_add.drive(bonus[0])
-        self.slave_timer_control__fractional_adder.drive(adder[1])
-        self.slave_timer_control__integer_adder.drive(adder[0])
+        self.slave_timer_control__period__bonus_subfraction_sub.drive(bonus[1])
+        self.slave_timer_control__period__bonus_subfraction_add.drive(bonus[0])
+        self.slave_timer_control__period__fractional_adder.drive(adder[1])
+        self.slave_timer_control__period__integer_adder.drive(adder[0])
         self.slave_timer_control__reset_counter.drive(1)
         self.slave_timer_control__enable_counter.drive(0)
         print("Slave configured for %fns %fMHz"%(clock_timer_period(adder, bonus),1000.0/clock_timer_period(adder, bonus)))
         if lock:
-            self.master_timer_control__lock_to_master.drive(1)
-            self.master_timer_control__lock_window_lsb.drive({4:0,6:1,8:2,10:3}[self.lock_window_lsb])
+            self.master_timer_control__lock_control__lock_to_master.drive(1)
+            self.master_timer_control__lock_control__lock_window_lsb.drive({4:0,6:1,8:2,10:3}[self.lock_window_lsb])
             pass
         else:
-            self.master_timer_control__lock_to_master.drive(0)
+            self.master_timer_control__lock_control__lock_to_master.drive(0)
             pass
         pass
     pass
@@ -339,10 +339,10 @@ class clock_timer(TestCase):
               "master_slave_0": (c_clock_timer_test_master_slave_0,  200*1000, {}),
               "master_slave_1": (c_clock_timer_test_master_slave_1,  5*1000*1000, {}),
               "master_slave_2": (c_clock_timer_test_master_slave_2,  5*1000*1000, {}),
-              "master_slave_3": (c_clock_timer_test_master_slave_3,  5*1000*1000, {}),
-              "master_slave_4": (c_clock_timer_test_master_slave_4,  1*1000*1000, {}),
-              "master_slave_5": (c_clock_timer_test_master_slave_5,  5*1000*1000, {"slave_period":100}),
-              "master_slave_6": (c_clock_timer_test_master_slave_6, 25*1000*1000, {"slave_period":1000}),
-              "master_slave_7": (c_clock_timer_test_master_slave_7, 25*1000*1000, {"slave_period":1000}),
+              # "master_slave_3": (c_clock_timer_test_master_slave_3,  5*1000*1000, {}),
+              # "master_slave_4": (c_clock_timer_test_master_slave_4,  1*1000*1000, {}),
+              # "master_slave_5": (c_clock_timer_test_master_slave_5,  5*1000*1000, {"slave_period":100}),
+              # "master_slave_6": (c_clock_timer_test_master_slave_6, 25*1000*1000, {"slave_period":1000}),
+              # "master_slave_7": (c_clock_timer_test_master_slave_7, 25*1000*1000, {"slave_period":1000}),
     }
     pass

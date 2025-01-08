@@ -153,16 +153,16 @@ clock edge where the clock is loaded with the 64-bit synchronization value.
     """: {
         if (timer_control.enable_counter) {
             if (timer_state.bonus_subfraction_acc[8]){
-                timer_state.bonus_subfraction_acc <= timer_state.bonus_subfraction_acc + bundle(1b0, timer_control.bonus_subfraction_add) + 1;
+                timer_state.bonus_subfraction_acc <= timer_state.bonus_subfraction_acc + bundle(1b0, timer_control.period.bonus_subfraction_add) + 1;
             } else {
-                timer_state.bonus_subfraction_acc <= timer_state.bonus_subfraction_acc + bundle(1b1, ~timer_control.bonus_subfraction_sub);
+                timer_state.bonus_subfraction_acc <= timer_state.bonus_subfraction_acc + bundle(1b1, ~timer_control.period.bonus_subfraction_sub);
             }
         }
         timer_combs.fractional_bonus = !timer_state.bonus_subfraction_acc[8];
         if (timer_control.reset_counter) {
             timer_state.bonus_subfraction_acc <= 0;
         }
-        if ((timer_control.bonus_subfraction_add==0) && (timer_control.bonus_subfraction_sub==0)) {
+        if ((timer_control.period.bonus_subfraction_add==0) && (timer_control.period.bonus_subfraction_sub==0)) {
             timer_state.bonus_subfraction_acc <= 0;
             timer_combs.fractional_bonus       = 0;
         }        
@@ -181,18 +181,18 @@ clock edge where the clock is loaded with the 64-bit synchronization value.
 
     """: {
         /*b Support advance and retard */
-        timer_combs.fractional_half_adder = timer_control.fractional_adder >> 1;
-        timer_combs.fractional_half_adder[3] = timer_control.integer_adder[0];
-        timer_combs.fractional_one_and_half_adder = bundle(1b0, timer_combs.fractional_half_adder) + bundle(1b0, timer_control.fractional_adder);
-        timer_combs.integer_half_adder          = timer_control.integer_adder >> 1;
-        timer_combs.integer_one_and_half_adder  = timer_combs.integer_half_adder + timer_control.integer_adder;
+        timer_combs.fractional_half_adder = timer_control.period.fractional_adder >> 1;
+        timer_combs.fractional_half_adder[3] = timer_control.period.integer_adder[0];
+        timer_combs.fractional_one_and_half_adder = bundle(1b0, timer_combs.fractional_half_adder) + bundle(1b0, timer_control.period.fractional_adder);
+        timer_combs.integer_half_adder          = timer_control.period.integer_adder >> 1;
+        timer_combs.integer_one_and_half_adder  = timer_combs.integer_half_adder + timer_control.period.integer_adder;
         if (timer_combs.fractional_one_and_half_adder[4]) {
-            timer_combs.integer_one_and_half_adder  = timer_combs.integer_half_adder + timer_control.integer_adder + 1;
+            timer_combs.integer_one_and_half_adder  = timer_combs.integer_half_adder + timer_control.period.integer_adder + 1;
         }
         
         if (!timer_state.hold_adder || timer_control.reset_counter || timer_control.enable_counter) {
-            timer_state.fractional_adder <= timer_control.fractional_adder;
-            timer_state.integer_adder    <= timer_control.integer_adder;
+            timer_state.fractional_adder <= timer_control.period.fractional_adder;
+            timer_state.integer_adder    <= timer_control.period.integer_adder;
             timer_state.hold_adder <= 1;
         }
         if (timer_control.advance && !timer_state.advance) {
