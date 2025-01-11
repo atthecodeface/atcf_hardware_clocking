@@ -98,7 +98,7 @@ typedef struct {
 /*a Module */
 module clock_timer_as_sec_nsec( clock clk             "Timer clock",
                                 input bit reset_n     "Active low reset",
-                                input t_timer_control timer_control "Control of the timer",
+                                input t_timer_control_full timer_control "Control of the timer",
                                 input t_timer_value  timer_value,
                                 output t_timer_sec_nsec timer_sec_nsec
     )
@@ -186,9 +186,9 @@ the bottom nine bits are all zero.
     divider_logic """
     """: {
         divider_combs.accumulator_minus_billion_shf_n = divider_state.accumulator - divider_state.billion_shf_n;
-        if (timer_control.reset_counter ||
-            !timer_control.enable_counter  ||
-            (timer_control.synchronize!=0) ) {
+        if (timer_control.control.reset_counter ||
+            !timer_control.control.enable_counter  ||
+            (timer_control.synchronize.valid!=0) ) {
             divider_state.enabled <= 0;
             divider_state.ready <= 0;
         } else {

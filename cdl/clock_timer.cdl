@@ -56,7 +56,7 @@ typedef struct {
 /*a Module */
 module clock_timer( clock clk             "Timer clock",
               input bit reset_n     "Active low reset",
-              input t_timer_control timer_control "Control of the timer", 
+              input t_timer_control_full timer_control "Control of the timer", 
               output t_timer_value  timer_value
     )
 """
@@ -151,7 +151,7 @@ clock edge where the clock is loaded with the 64-bit synchronization value.
     achieved using an @a bonus_subfraction_add value of 1 and a @a bonus_subfraction_sub value of 1)
     the fractional bonus is 0, and the logic will be optimized out if the configuration is tied off.
     """: {
-        if (timer_control.enable_counter) {
+        if (timer_control.control.enable_counter) {
             if (timer_state.bonus_subfraction_acc[8]){
                 timer_state.bonus_subfraction_acc <= timer_state.bonus_subfraction_acc + bundle(1b0, timer_control.period.bonus_subfraction_add) + 1;
             } else {
@@ -159,7 +159,7 @@ clock edge where the clock is loaded with the 64-bit synchronization value.
             }
         }
         timer_combs.fractional_bonus = !timer_state.bonus_subfraction_acc[8];
-        if (timer_control.reset_counter) {
+        if (timer_control.control.reset_counter) {
             timer_state.bonus_subfraction_acc <= 0;
         }
         if ((timer_control.period.bonus_subfraction_add==0) && (timer_control.period.bonus_subfraction_sub==0)) {
@@ -190,25 +190,25 @@ clock edge where the clock is loaded with the 64-bit synchronization value.
             timer_combs.integer_one_and_half_adder  = timer_combs.integer_half_adder + timer_control.period.integer_adder + 1;
         }
         
-        if (!timer_state.hold_adder || timer_control.reset_counter || timer_control.enable_counter) {
+        if (!timer_state.hold_adder || timer_control.control.reset_counter || timer_control.control.enable_counter) {
             timer_state.fractional_adder <= timer_control.period.fractional_adder;
             timer_state.integer_adder    <= timer_control.period.integer_adder;
             timer_state.hold_adder <= 1;
         }
-        if (timer_control.advance && !timer_state.advance) {
+        if (timer_control.control.advance && !timer_state.advance) {
             timer_state.fractional_adder <= timer_combs.fractional_one_and_half_adder[4;0];
             timer_state.integer_adder    <= timer_combs.integer_one_and_half_adder;
             timer_state.hold_adder       <= 0;
-        } elsif (timer_control.retard && !timer_state.retard) {
+        } elsif (timer_control.control.retard && !timer_state.retard) {
             timer_state.fractional_adder <= timer_combs.fractional_half_adder;
             timer_state.integer_adder    <= timer_combs.integer_half_adder;
             timer_state.hold_adder       <= 0;
         }
-        if (timer_control.advance || timer_state.advance) {
-            timer_state.advance <= timer_control.advance;
+        if (timer_control.control.advance || timer_state.advance) {
+            timer_state.advance <= timer_control.control.advance;
         }
-        if (timer_control.retard || timer_state.retard) {
-            timer_state.retard <= timer_control.retard;
+        if (timer_control.control.retard || timer_state.retard) {
+            timer_state.retard <= timer_control.control.retard;
         }
         
         /*b Tick / reset timer */
@@ -225,30 +225,29 @@ clock edge where the clock is loaded with the 64-bit synchronization value.
             timer_combs.upper_sum      = timer_state.timer_upper + 1;
         }
         
-        if (timer_control.enable_counter) {
+        if (timer_control.control.enable_counter) {
             timer_state.fraction    <= timer_combs.fractional_sum[4;0];
             timer_state.timer_lower <= timer_combs.lower_sum[32;0];
             timer_state.timer_upper <= timer_combs.upper_sum;
         }
-        if (timer_control.reset_counter) {
+        if (timer_control.control.reset_counter) {
             timer_state.fraction <= 0;
             timer_state.timer_lower <= 0;
             timer_state.timer_upper <= 0;
         }
 
         /*b Allow synchronization */
-        if (timer_control.synchronize[0]) {
-            timer_state.timer_lower  <= timer_control.synchronize_value[32; 0];
+        if (timer_control.synchronize.valid[0]) {
+            timer_state.timer_lower  <= timer_control.synchronize.value[32; 0];
             timer_state.fraction     <= 0;
         }
-        if (timer_control.synchronize[1]) {
-            timer_state.timer_upper  <= timer_control.synchronize_value[32;32];
+        if (timer_control.synchronize.valid[1]) {
+            timer_state.timer_upper  <= timer_control.synchronize.value[32;32];
             timer_state.fraction     <= 0;
         }
 
         /*b Drive outputs */
         timer_value.value = bundle(timer_state.timer_upper, timer_state.timer_lower);
-        timer_value.irq = 0;
         timer_value.locked = 0;
     }
 
