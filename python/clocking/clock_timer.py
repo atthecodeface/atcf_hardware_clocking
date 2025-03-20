@@ -15,24 +15,44 @@
 # limitations under the License.
 #
 
+#t t_timer_period_config
+t_timer_period_config = {
+    "bonus_subfraction_add":8,
+    "bonus_subfraction_sub":8,
+    "fractional_adder":4,
+    "integer_adder":8,
+}
+
 #t t_timer_control
-t_timer_control = {"reset_counter":1,
-                 "enable_counter":1,
-                 "advance":1,
-                 "retard":1,
-                 "lock_to_master":1,
-                 "lock_window_lsb":2,
-                 "synchronize":2,
-                 "synchronize_value":64,
-                 "block_writes":1,
-                 "bonus_subfraction_add":8,
-                 "bonus_subfraction_sub":8,
-                 "fractional_adder":4,
-                 "integer_adder":8,
+t_timer_control = {
+    "reset_counter":1,
+    "enable_counter":1,
+    "advance":1,
+    "retard":1,
+}
+
+#t t_timer_lock_control
+t_timer_lock_control = {
+    "to_master":1,
+    "window_lsb":2,
+}
+
+#t t_timer_synchronize
+t_timer_synchronize = {
+    "valid":2,
+    "value":64,
+}
+
+#t t_timer_control_full
+t_timer_control_full = {
+    "control":t_timer_control,
+    "lock": t_timer_lock_control,
+    "synchronize": t_timer_synchronize,
+    "period":t_timer_period_config,
 }
 
 #t t_timer_value
-t_timer_value = {"irq":1,
+t_timer_value = {
                "locked":1,
                "value":64,
 }

@@ -215,7 +215,7 @@ typedef struct {
     t_slave_toggles toggles                 "Toggle counts for the slave FSM";
     bit synchronize_request                 "Slave clock record of the synchronized master 'synchronize' request going high - used to determine if synchronization is required";
     t_timing_op request_timing              "Request to timer control to advance/retard - but only if locking enabled";
-    t_timer_control timer_control           "Timer control to the internal slave clock_timer and for the @a slave_timer_control_out";
+    t_timer_control_full timer_control           "Timer control to the internal slave clock_timer and for the @a slave_timer_control_out";
     bit phase_locked                        "Asserted if phase locked to master";
     bit locked                              "Asserted if phase locked to master and upper value bits match";
 } t_slave_state;
@@ -247,10 +247,10 @@ module clock_timer_async( clock master_clk             "Master clock",
                           input bit master_reset_n     "Active low reset",
                           clock slave_clk              "Slave clock, asynchronous to master",
                           input bit slave_reset_n     " Active low reset",
-                          input t_timer_control  master_timer_control     "Timer control in the master domain - synchronize, reset, enable and lock_to_master are used",
+                          input t_timer_control_full  master_timer_control     "Timer control in the master domain - control, synchronize, lock are used",
                           input t_timer_value    master_timer_value       "Timer value in the master domain - only 'value' is used",
-                          input t_timer_control   slave_timer_control_in  "Timer control in the slave domain - only adder values are used",
-                          output t_timer_control  slave_timer_control_out "Timer control in the slave domain for other synchronous clock_timers - all valid",
+                          input t_timer_period_config slave_timer_period  "Slave timer period",
+                          output t_timer_control_full  slave_timer_control_out "Timer control in the slave domain for other synchronous clock_timers - all valid",
                           output t_timer_value    slave_timer_value       "Timer value in the slave domain"
     )
 """
@@ -311,7 +311,7 @@ If more than one unexpected toggled occurs then the timer is deemed 'not locked'
     and use negative edge detection to determine a synchronization is required.
     """: {
        
-        if (master_timer_control.synchronize!=0) {
+        if (master_timer_control.synchronize.valid != 0) {
             master_state.synchronize_pending <= 1;
         }
         master_state.last_window_bits <= master_combs.window_bits;
@@ -342,13 +342,13 @@ If more than one unexpected toggled occurs then the timer is deemed 'not locked'
     @a quarter_window_passed toggles and every edge is detected
     """: {
         tech_sync_bit slave_reset_counter_flop(clk <- slave_clk, reset_n<=slave_reset_n,
-                                               d <= master_timer_control.reset_counter,
+                                               d <= master_timer_control.control.reset_counter,
                                                q => slave_sync_master_reset_counter ); // level sensitive
         tech_sync_bit slave_enable_counter_flop(clk <- slave_clk, reset_n<=slave_reset_n,
-                                               d <= master_timer_control.enable_counter,
+                                               d <= master_timer_control.control.enable_counter,
                                                q => slave_sync_master_enable_counter ); // level sensitive
         tech_sync_bit slave_lock_to_master_flop(clk <- slave_clk, reset_n<=slave_reset_n,
-                                               d <= master_timer_control.lock_to_master,
+                                               d <= master_timer_control.lock.to_master,
                                                q => slave_sync_master_lock_to_master ); // level sensitive
         tech_sync_bit slave_synchronize_flop(clk <- slave_clk, reset_n<=slave_reset_n,
                                              d <= master_state.synchronize_request,
@@ -489,30 +489,30 @@ If more than one unexpected toggled occurs then the timer is deemed 'not locked'
         }
 
         /*b Record the timer_control required */
-        slave_state.timer_control.reset_counter  <= slave_sync_master_reset_counter;
-        slave_state.timer_control.enable_counter <= slave_sync_master_enable_counter;
-        slave_state.timer_control.lock_to_master <= slave_sync_master_lock_to_master;
-        slave_state.timer_control.advance <= 0;
-        slave_state.timer_control.retard  <= 0;
+        slave_state.timer_control.control.reset_counter  <= slave_sync_master_reset_counter;
+        slave_state.timer_control.control.enable_counter <= slave_sync_master_enable_counter;
+        slave_state.timer_control.control.advance <= 0;
+        slave_state.timer_control.control.retard  <= 0;
+        slave_state.timer_control.lock.to_master <= slave_sync_master_lock_to_master;
         if (slave_state.request_timing != timing_op_none) {
             slave_state.request_timing <= timing_op_none;
             if (slave_sync_master_lock_to_master) {
-                slave_state.timer_control.advance <= (slave_state.request_timing==timing_op_advance);
-                slave_state.timer_control.retard  <= (slave_state.request_timing==timing_op_retard);
+                slave_state.timer_control.control.advance <= (slave_state.request_timing==timing_op_advance);
+                slave_state.timer_control.control.retard  <= (slave_state.request_timing==timing_op_retard);
             }
         }
         slave_state.synchronize_request <= slave_sync_master_synchronize_request;
-        slave_state.timer_control.synchronize <= 0;
+        slave_state.timer_control.synchronize.valid <= 0;
         if (!slave_sync_master_synchronize_request && slave_state.synchronize_request) { // negative edge
-            slave_state.timer_control.synchronize <= 2b11;
-            slave_state.timer_control.synchronize_value <= master_combs.top_value | master_combs.quarter_window;
+            slave_state.timer_control.synchronize.valid <= 2b11;
+            slave_state.timer_control.synchronize.value <= master_combs.top_value | master_combs.quarter_window;
         }
-        slave_state.timer_control.block_writes            <= slave_timer_control_in.block_writes;
-        slave_state.timer_control.bonus_subfraction_add   <= slave_timer_control_in.bonus_subfraction_add;
-        slave_state.timer_control.bonus_subfraction_sub   <= slave_timer_control_in.bonus_subfraction_sub;
-        slave_state.timer_control.fractional_adder        <= slave_timer_control_in.fractional_adder;
-        slave_state.timer_control.integer_adder           <= slave_timer_control_in.integer_adder;
-        slave_state.timer_control.lock_window_lsb         <= slave_timer_control_in.lock_window_lsb;
+        // TODO - fix this
+        slave_state.timer_control.control.block_writes                   <= 0;
+        // TODO - fix this
+        slave_state.timer_control.lock.window_lsb   <= master_timer_control.lock.window_lsb;
+
+        slave_state.timer_control.period   <= slave_timer_period;
 
         /*b Instantiate the timer in the slave clock domain */
         clock_timer timer(clk <- slave_clk,
@@ -531,7 +531,7 @@ If more than one unexpected toggled occurs then the timer is deemed 'not locked'
     Decode the @a lock_window_lsb from the @a master_timer_control, to provide
     the master and slave timer value quarter window bits, and masks
     """: {
-        full_switch (master_timer_control.lock_window_lsb) {
+        full_switch (master_timer_control.lock.window_lsb) {
         case timer_lock_window_lsb_6: {
             master_combs.window_bits     = master_timer_value.value[2;6];
             master_combs.top_value_mask  = (-1)<<(6+2);
@@ -549,6 +549,12 @@ If more than one unexpected toggled occurs then the timer is deemed 'not locked'
             master_combs.top_value_mask  = (-1)<<(10+2);
             master_combs.quarter_window  = 1<<10;
             slave_combs.window_bits      = slave_timer_value.value[2;10];
+        }
+        case timer_lock_window_lsb_12: {
+            master_combs.window_bits     = master_timer_value.value[2;12];
+            master_combs.top_value_mask  = (-1)<<(12+2);
+            master_combs.quarter_window  = 1<<12;
+            slave_combs.window_bits      = slave_timer_value.value[2;12];
         }
         default: { // case timer_lock_window_lsb_4: {
             master_combs.window_bits     = master_timer_value.value[2;4];
@@ -576,10 +582,10 @@ If more than one unexpected toggled occurs then the timer is deemed 'not locked'
                 "diff",slave_combs.toggle_diff
                 );
         }
-        if (slave_state.timer_control.advance || slave_state.timer_control.retard) {
+        if (slave_state.timer_control.control.advance || slave_state.timer_control.control.retard) {
             log("adjust",
                 "master",master_timer_value.value,
-                "advance",slave_state.timer_control.advance,
+                "advance",slave_state.timer_control.control.advance,
                 "slave",slave_timer_value.value,
                 "m_minus_s",master_timer_value.value-slave_timer_value.value
                 );
